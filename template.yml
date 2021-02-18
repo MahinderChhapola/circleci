@@ -1,18 +1,20 @@
 Description: Learn CD with CircleCI
+
 Resources:
-  MyEC2Instance: 
-      Type: AWS::EC2::Instance
-      Properties: 
-        ImageId: "ami-022e8cc8f0d3c52fd"
-        KeyName: "ec2"
-        SecurityGroups:
-        - !Ref InstanceSecurityGroup
-    InstanceSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-          GroupDescription: Allow http to our load balancer        
-          SecurityGroupIngress:
-          - IpProtocol: tcp
-            FromPort: 22
-            ToPort: 22
+  InstanceSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH from local only
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
           CidrIp: 0.0.0.0/0
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: ec2
+      SecurityGroupIds:
+        - !Ref InstanceSecGroup
+      ImageId: ami-022e8cc8f0d3c52fd
