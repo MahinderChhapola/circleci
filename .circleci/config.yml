@@ -6,8 +6,32 @@ commands:
           name: Destroy environment
           command: |
             aws cloudformation delete-stack --stack-name prod-${CIRCLE_WORKFLOW_ID}
+
 jobs:
+  hello:
+    docker:
+      - image: amazon/aws-cli
+    steps:      
+      - run: echo "hello"
+
   create_infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: create infrastructure
+          command: |
+            aws cloudformation deploy \
+            --template-file template.yml \
+            --stack-name prod-${CIRCLE_WORKFLOW_ID}
+      - run: return 1
+      - run: 
+          name: on fail destroy infra
+          command: aws cloudformation delete-stack --stack-name prod-${CIRCLE_WORKFLOW_ID}
+          when: on_fail
+
+  cloudfront-distro:
     docker:
       - image: amazon/aws-cli
     steps:
@@ -25,6 +49,6 @@ jobs:
 workflows:
   my_workflow:
     jobs:
-      - create_infrastructure
+      - hello
           
         
