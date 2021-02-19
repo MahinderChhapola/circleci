@@ -13,27 +13,21 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Ensure backend infrastructure exist
+          name: create infrastructure
           command: |
             aws cloudformation deploy \
             --template-file template.yml \
             --stack-name prod-${CIRCLE_WORKFLOW_ID}
-  destroy_stack:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - run:
-          name: Simulate Error
-          command: |
-            return 1
-      - destroy_environment
+      - run: return 1
+      - run: 
+          name: on fail destroy infra
+          command: destroy_environment
+          when: on_fail 
       
 
 workflows:
   my_workflow:
     jobs:
       - create_infrastructure
-      - destroy_stack:
-          requires:
-            - create_infrastructure    
+          
         
