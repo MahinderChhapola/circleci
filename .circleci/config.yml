@@ -19,15 +19,15 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: echo "bucket-${CIRCLE_WORKFLOW_ID:0:5}"
+      - run: echo bucket-${CIRCLE_WORKFLOW_ID:0:5}
       - run:
           name: create and deploy front end
           command: |
             aws cloudformation deploy \
             --template-file bucket.yml \
-            --stack-name "bucket-${CIRCLE_WORKFLOW_ID}" \
-            --parameter-overrides "NAME=bucket-${CIRCLE_WORKFLOW_ID}"
-      - run: aws s3 sync . s3://"bucket-${CIRCLE_WORKFLOW_ID}" --delete
+            --stack-name bucket-${CIRCLE_WORKFLOW_ID} \
+            --parameter-overrides NAME=bucket-${CIRCLE_WORKFLOW_ID}
+      - run: aws s3 sync . s3://bucket-${CIRCLE_WORKFLOW_ID} --delete
   create_infrastructure:
     docker:
       - image: amazon/aws-cli
