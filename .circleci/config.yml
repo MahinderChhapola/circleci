@@ -49,13 +49,14 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - run: echo "bucket-${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: create infrastructure
           command: |
             aws cloudformation deploy \
             --template-file cloudfront.yml \
             --stack-name production-distro \
-            --parameter-overrides PipelineID=bucket-${CIRCLE_WORKFLOW_ID:0:7} \
+            --parameter-overrides PipelineID="bucket-${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
   save-pipeline-id:
     docker:
@@ -110,7 +111,16 @@ jobs:
 workflows:
   my_workflow:
     jobs:
-    -  cloudfront-distro
+      - create_and_deploy_front_end
+      - save-pipeline-id:
+          requires:
+            - create_and_deploy_front_end
+      - promote_to_production:
+          requires:
+            - save-pipeline-id
+      - clean_up_old_front_end:
+          requires:
+            - promote_to_production
         
                           
           
