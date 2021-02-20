@@ -24,9 +24,9 @@ jobs:
           command: |
             aws cloudformation deploy \
             --template-file bucket.yml \
-            --stack-name "${CIRCLE_WORKFLOW_ID:0:7}" \
-            --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID:0:7}"
-      - run: aws s3 sync . s3://"${CIRCLE_WORKFLOW_ID}" --delete
+            --stack-name "${CIRCLE_WORKFLOW_ID:0:5}" \
+            --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID:0:5}"
+      - run: aws s3 sync . s3://"${CIRCLE_WORKFLOW_ID:0:5}" --delete
   create_infrastructure:
     docker:
       - image: amazon/aws-cli
