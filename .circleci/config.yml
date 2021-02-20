@@ -18,16 +18,15 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-      - checkout
-      - run: echo bucket-${CIRCLE_WORKFLOW_ID:0:5}
+      - checkout      
       - run:
           name: create and deploy front end
           command: |
             aws cloudformation deploy \
             --template-file bucket.yml \
-            --stack-name bucket-${CIRCLE_WORKFLOW_ID} \
-            --parameter-overrides NAME=bucket-${CIRCLE_WORKFLOW_ID}
-      - run: aws s3 sync . s3://bucket-${CIRCLE_WORKFLOW_ID} --delete
+            --stack-name bucket-${CIRCLE_WORKFLOW_ID:0:7} \
+            --parameter-overrides NAME=bucket-${CIRCLE_WORKFLOW_ID:0:7}
+      - run: aws s3 sync s3://udacity-pipeline s3://bucket-${CIRCLE_WORKFLOW_ID:0:7} --delete
   create_infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -56,8 +55,35 @@ jobs:
             aws cloudformation deploy \
             --template-file cloudfront.yml \
             --stack-name production-distro \
-            --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}" \
+            --parameter-overrides PipelineID=bucket-${CIRCLE_WORKFLOW_ID:0:7} \
             --tags project=udapeople
+  save-pipeline-id:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: save pipeline id
+          command:  |
+            aws cloudformation \
+            list-exports --query "Exports[?Name==\`PipelineID\`].Value" \
+            --no-paginate --output text >> ~/output.txt
+            cat ~/output.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - output.txt    
+  clean_up_old_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/output.txt
+      - run: |
+          aws s3 rm "s3://bucket-${CIRCLE_WORKFLOW_ID:0:7}" --force
+          aws cloudformation delete-stack --stack-name "bucket-${CIRCLE_WORKFLOW_ID:0:7}"
+
   cloudfront-distro:
     docker:
       - image: amazon/aws-cli
@@ -77,9 +103,15 @@ workflows:
   my_workflow:
     jobs:
       - create_and_deploy_front_end
-      - promote_to_production:
-          requires: 
+      - save-pipeline-id:
+          requires:
             - create_and_deploy_front_end
+      - promote_to_production:
+          requires:
+            - save-pipeline-id
+      - clean_up_old_front_end:
+          requires:
+            - promote_to_production
         
                           
           
