@@ -88,7 +88,9 @@ jobs:
             yum install tar -y
             yum install gzip -y
       - attach_workspace:
-          at: ~/output.txt
+          at: ~/
+      - run: cat output.txt
+      - run: echo ${CIRCLE_WORKFLOW_ID:0:7}
       - run: |
           aws s3 rb "s3://bucket-${CIRCLE_WORKFLOW_ID:0:7}" --force
           aws cloudformation delete-stack --stack-name "bucket-${CIRCLE_WORKFLOW_ID:0:7}"
