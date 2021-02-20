@@ -90,7 +90,7 @@ jobs:
       - attach_workspace:
           at: ~/output.txt
       - run: |
-          aws s3 rm "s3://bucket-${CIRCLE_WORKFLOW_ID:0:7}" --force
+          aws s3 rb "s3://bucket-${CIRCLE_WORKFLOW_ID:0:7}" --force
           aws cloudformation delete-stack --stack-name "bucket-${CIRCLE_WORKFLOW_ID:0:7}"
 
   cloudfront-distro:
@@ -110,17 +110,9 @@ jobs:
 
 workflows:
   my_workflow:
-    jobs:
-      - create_and_deploy_front_end
-      - save-pipeline-id:
-          requires:
-            - create_and_deploy_front_end
-      - promote_to_production:
-          requires:
-            - save-pipeline-id
-      - clean_up_old_front_end:
-          requires:
-            - promote_to_production
+    jobs:      
+      - clean_up_old_front_end
+          
         
                           
           
