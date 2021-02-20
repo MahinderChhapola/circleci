@@ -63,6 +63,10 @@ jobs:
     steps:
       - checkout
       - run:
+          command: |
+            yum install tar -y
+            yum install gzip -y
+      - run:
           name: save pipeline id
           command:  |
             aws cloudformation \
@@ -78,6 +82,10 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - run:
+          command: |
+            yum install tar -y
+            yum install gzip -y
       - attach_workspace:
           at: ~/output.txt
       - run: |
@@ -102,16 +110,7 @@ jobs:
 workflows:
   my_workflow:
     jobs:
-      - create_and_deploy_front_end
-      - save-pipeline-id:
-          requires:
-            - create_and_deploy_front_end
-      - promote_to_production:
-          requires:
-            - save-pipeline-id
-      - clean_up_old_front_end:
-          requires:
-            - promote_to_production
+    -  cloudfront-distro
         
                           
           
